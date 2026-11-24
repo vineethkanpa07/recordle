@@ -46,6 +46,10 @@ def describe_database():
 class DatabaseUnavailable(Exception):
     """The hosted database couldn't be reached in time."""
 
+# Songs rated before each song kept its own rating time get a fixed one: when their album was added.
+# (Borrowing the album's last-rated time made every older song look re-rated whenever one changed.)
+BACKFILL_SONG_TIMES = "UPDATE songs SET rated_at = (SELECT created_at FROM albums WHERE albums.id = songs.album_id) WHERE rated_at IS NULL AND rating IS NOT NULL"
+
 SQLITE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -223,6 +227,7 @@ def _init_sqlite(path):
             conn.execute("ALTER TABLE albums ADD COLUMN released TEXT")
         if "rated_at" not in _sqlite_columns(conn, "songs"):
             conn.execute("ALTER TABLE songs ADD COLUMN rated_at REAL")
+        conn.execute(BACKFILL_SONG_TIMES)
 
 
 def _connect_sqlite(path):
@@ -326,6 +331,7 @@ def _init_postgres():
             conn.execute("ALTER TABLE albums ADD COLUMN IF NOT EXISTS rated_at DOUBLE PRECISION")
             conn.execute("ALTER TABLE albums ADD COLUMN IF NOT EXISTS released TEXT")
             conn.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS rated_at DOUBLE PRECISION")
+            conn.execute(BACKFILL_SONG_TIMES)
         log("Connected to the database and checked its tables.")
     except psycopg.Error as err:
         # Keep the site up so the error page can explain the problem; the log says what went wrong.

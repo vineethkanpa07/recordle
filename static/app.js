@@ -150,7 +150,7 @@
   // Score: highest first, ties go to the song rated most recently. A–Z by song name. Recent: newest
   // rating first. "Reverse" flips whichever order is chosen.
   const songSort = { by: "score", reverse: false };
-  const ratedTime = (s, a) => s.rated_at || a.rated_at || a.created_at || 0;  // older ratings: fall back to the album's time
+  const ratedTime = (s, a) => s.rated_at || a.created_at || 0;  // (the server gives older ratings a fixed time)
   function allRatedSongs() {
     const rows = [];
     for (const a of state.albums.values()) for (const s of listedSongs(a)) if (s.rating != null) rows.push({ s, a, t: ratedTime(s, a) });
