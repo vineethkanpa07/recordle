@@ -1,4 +1,4 @@
-"""Musicboard: rate every song on the albums you listen to, 0.5 to 10.
+"""Recordle: rate every song on the albums you listen to, 0.5 to 10.
 
 Everyone signs up with a username and password. Albums are private by default;
 switching a page to public makes /<username> show a read-only copy of that
@@ -37,7 +37,7 @@ FILE_LIKE_RE = re.compile(r"\.(ico|txt|xml|json|webmanifest|html?|js|css|png|jpe
 # Usernames that would clash with the app's own pages.
 RESERVED_USERNAMES = {
     "about", "account", "admin", "api", "covers", "help", "login", "logout", "me",
-    "musicboard", "new", "settings", "signup", "static", "u", "user", "users",
+    "musicboard", "recordle", "new", "settings", "signup", "static", "u", "user", "users",
     "friends", "notifications", "search",
 }
 
@@ -336,7 +336,7 @@ def json_error(err):
 @app.errorhandler(database.DatabaseUnavailable)
 def database_unavailable(err):
     database.log(f"Database unavailable: {err}")
-    message = "Musicboard can't reach its database right now. Try again in a minute."
+    message = "Recordle can't reach its database right now. Try again in a minute."
     if request.path.startswith("/api/"):
         return jsonify(error=message), 503
     return render_template("not_found.html", heading="Can't reach the database", message=message), 503

@@ -1,4 +1,4 @@
-// Musicboard front end. Talks to the Flask API in app.py.
+// Recordle front end. Talks to the Flask API in app.py.
 (() => {
   // ---------- helpers ----------
   // Each score maps to one fixed color: 1 = red, about 5 = amber, 10 = green.
@@ -42,7 +42,7 @@
     else if (body !== undefined) { opts.body = JSON.stringify(body); opts.headers = { "Content-Type": "application/json" }; }
     let res;
     try { res = await fetch(url, opts); }
-    catch (e) { say("Couldn't reach Musicboard. Check your internet connection and try again."); throw e; }
+    catch (e) { say("Couldn't reach Recordle. Check your internet connection and try again."); throw e; }
     if (res.status === 401) { location.href = "/login"; throw new Error("Logged out"); }
     if (!res.ok) {
       let msg = "Something went wrong saving that.";

@@ -1,4 +1,4 @@
-# Musicboard
+# Recordle
 
 Rate every song on the albums you listen to, from 0.5 to 10.
 
@@ -69,7 +69,7 @@ python app.py
 
 Open http://127.0.0.1:5000 in your browser.
 
-In VS Code you can also press **F5** and pick **Run Musicboard**.
+In VS Code you can also press **F5** and pick **Run Recordle**.
 
 ## Putting it online (free: Render + Neon)
 
@@ -87,11 +87,11 @@ files on every restart, which is why accounts, albums and scores live in Neon's 
 **2. Put the app on Render**
 
 1. Sign up at [render.com](https://render.com) with your GitHub account.
-2. Click **New** > **Blueprint**, pick the `musicboard` repository, and click **Connect**.
+2. Click **New** > **Blueprint**, pick the `recordle` repository, and click **Connect**.
    Render reads `render.yaml` from the repo, so everything is set up for you.
 3. When it asks for `DATABASE_URL`, paste the Neon connection string. Click **Apply**.
 4. Wait for the first deploy to finish (a few minutes). Your site is at the address Render shows,
-   like `https://musicboard.onrender.com` (Render adds letters if the name is taken).
+   like `https://recordle.onrender.com` (Render adds letters if the name is taken).
 5. Open it and sign up. The site starts empty; albums on your computer stay on your computer.
 
 **After that**
@@ -104,6 +104,8 @@ files on every restart, which is why accounts, albums and scores live in Neon's 
 
 Settings Render uses (already in `render.yaml`): `DATABASE_URL` (your Neon database),
 `MUSICBOARD_SECRET` (signs login cookies; Render generates it) and `MUSICBOARD_DEBUG=0`.
+(The app was called Musicboard at first; these setting names and `instance/musicboard.db` kept that name
+so existing logins and data keep working.)
 
 ## Files
 

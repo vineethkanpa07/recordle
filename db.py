@@ -1,4 +1,4 @@
-"""Database access for Musicboard.
+"""Database access for Recordle.
 
 On your computer the app keeps everything in a SQLite file (instance/musicboard.db).
 When DATABASE_URL is set to a Postgres address (for example a free Neon database
@@ -29,7 +29,7 @@ CONNECT_TIMEOUT = 10
 
 
 def log(message):
-    print(f"[musicboard] {message}", file=sys.stderr, flush=True)
+    print(f"[recordle] {message}", file=sys.stderr, flush=True)
 
 
 def describe_database():

@@ -1,4 +1,4 @@
-/* Musicboard styles. Colors are tokens so light and dark mode both work. */
+/* Recordle styles. Colors are tokens so light and dark mode both work. */
 /* Layout: a record-shelf dashboard — artist rows of square sleeves; an album opens as a tracklist sheet. */
 :root {
   --bg: #f3f3f1;
