@@ -133,7 +133,10 @@
     const box = $("#topAlbums"), top = topAlbums();
     box.hidden = !top.length;
     if (!top.length) { box.innerHTML = ""; return; }
-    box.innerHTML = `<h2 id="topAlbumsH">Top albums</h2>
+    box.innerHTML = `<div class="top-head"><h2 id="topAlbumsH">Top albums</h2>
+        <button class="btn all-songs-btn" type="button" id="allSongsBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="18.5" cy="16.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 16.5V6l-2 1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          All songs</button></div>
       <ol class="top-list">${top.map(({ a, avg }, i) => `<li>
         <button class="top-item" type="button" data-id="${a.id}" aria-label="Number ${i + 1}: ${esc(a.title)} by ${esc(a.artist)}, average ${fmtAvg(avg)}">
           <div class="sleeve">${sleeveHtml(a)}<span class="rank" aria-hidden="true">${i + 1}</span>
@@ -141,6 +144,62 @@
           <div class="card-title">${esc(a.title)}</div>
           <div class="card-sub">${esc(a.artist)}${a.year ? ` · ${a.year}` : ""}</div>
         </button></li>`).join("")}</ol>`;
+  }
+
+  // ---------- All songs: every rated song in one list ----------
+  // Score: highest first, ties go to the song rated most recently. A–Z by song name. Recent: newest
+  // rating first. "Reverse" flips whichever order is chosen.
+  const songSort = { by: "score", reverse: false };
+  const ratedTime = (s, a) => s.rated_at || a.rated_at || a.created_at || 0;  // older ratings: fall back to the album's time
+  function allRatedSongs() {
+    const rows = [];
+    for (const a of state.albums.values()) for (const s of listedSongs(a)) if (s.rating != null) rows.push({ s, a, t: ratedTime(s, a) });
+    const byName = (x, y) => x.s.name.localeCompare(y.s.name, undefined, { sensitivity: "base", numeric: true }) || y.t - x.t;
+    const sorters = { score: (x, y) => y.s.rating - x.s.rating || y.t - x.t, alpha: byName, recent: (x, y) => y.t - x.t || y.s.rating - x.s.rating };
+    rows.sort(sorters[songSort.by]);
+    return songSort.reverse ? rows.reverse() : rows;
+  }
+  const SORT_LABELS = { score: ["Highest first", "Lowest first"], alpha: ["A to Z", "Z to A"], recent: ["Newest first", "Oldest first"] };
+  function openAllSongs() {
+    closeOverlay();
+    const ov = document.createElement("div"); ov.className = "overlay";
+    ov.innerHTML = `<div class="sheet all-songs" role="dialog" aria-modal="true" aria-labelledby="allSongsH"><div class="sheet-body">
+      <div class="all-songs-head"><h3 id="allSongsH">All songs</h3><button class="icon-btn" type="button" id="allSongsClose" aria-label="Close">✕</button></div>
+      <div class="song-sort" role="group" aria-label="Sort songs">
+        <div class="seg" role="radiogroup" aria-label="Sort by">${[["score", "Score"], ["alpha", "A–Z"], ["recent", "Recent"]].map(([k, label]) =>
+          `<button type="button" role="radio" data-by="${k}" aria-checked="${songSort.by === k}">${label}</button>`).join("")}</div>
+        <button class="btn small" type="button" id="songReverse"></button>
+      </div>
+      <div class="scroll" id="allSongsList"></div></div></div>`;
+    document.body.appendChild(ov);
+    ov.onEscape = closeOverlay;
+    ov.addEventListener("mousedown", e => { if (e.target === ov) closeOverlay(); });
+    $("#allSongsClose").onclick = closeOverlay;
+    const render = () => {
+      const rows = allRatedSongs(), now = Date.now() / 1000;
+      ov.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-checked", String(b.dataset.by === songSort.by)));
+      $("#songReverse").innerHTML = `<span aria-hidden="true">⇅</span> ${SORT_LABELS[songSort.by][songSort.reverse ? 1 : 0]}`;
+      $("#allSongsH").textContent = `All songs (${rows.length} rated)`;
+      $("#allSongsList").innerHTML = rows.length ? `<ol class="song-list">${rows.map(({ s, a, t }, i) => `<li>
+          <button class="song-row" type="button" data-album="${a.id}">
+            <span class="song-rank">${i + 1}</span>
+            ${a.cover_url ? `<img class="note-thumb" src="${esc(smallCover(a.cover_url))}" alt="" loading="lazy">` : `<span class="note-thumb" aria-hidden="true"></span>`}
+            <span class="song-info"><span class="song-name">${esc(s.name)}</span>
+              <span class="song-sub">${esc(a.title)} · ${esc(a.artist)}${t ? ` · ${timeAgo(t, now)}` : ""}</span></span>
+            <span class="cmp-score" style="background:${ratingColor(s.rating)}">${fmt(s.rating)}</span>
+          </button></li>`).join("")}</ol>`
+        : `<p class="panel-empty">No rated songs yet. Open an album and give its songs a score.</p>`;
+    };
+    ov.querySelector(".seg").addEventListener("click", e => {
+      const b = e.target.closest("button[data-by]"); if (!b) return;
+      songSort.by = b.dataset.by; songSort.reverse = false; render();
+    });
+    $("#songReverse").onclick = () => { songSort.reverse = !songSort.reverse; render(); };
+    $("#allSongsList").addEventListener("click", e => {
+      const row = e.target.closest(".song-row"); if (row) openAlbum(Number(row.dataset.album));
+    });
+    render();
+    setTimeout(() => ov.querySelector('.seg [aria-checked="true"]')?.focus(), 0);
   }
 
   function renderDashboard() {
@@ -354,6 +413,7 @@
   });
 
   $("#topAlbums").addEventListener("click", e => {
+    if (e.target.closest("#allSongsBtn")) { openAllSongs(); return; }
     const item = e.target.closest(".top-item");
     if (item) openAlbum(Number(item.dataset.id));
   });
@@ -770,7 +830,7 @@
     if (e.target.classList.contains("rate")) {
       const r = parseRating(e.target.value);
       if (r === undefined) return;
-      if (s.rating !== r) a.rated_at = Date.now() / 1000;  // newest-rated wins ties in Top albums
+      if (s.rating !== r) a.rated_at = s.rated_at = Date.now() / 1000;  // newest-rated wins ties (Top albums, All songs)
       s.rating = r;
       e.target.classList.toggle("filled", r != null);
       e.target.style.background = r != null ? ratingColor(r) : "";

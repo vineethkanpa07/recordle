@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS songs (
     album_id  INTEGER NOT NULL REFERENCES albums(id) ON DELETE CASCADE,
     name      TEXT NOT NULL DEFAULT '',
     rating    REAL,
+    rated_at  REAL,      -- when this song's score last changed
     position  INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS friendships (
@@ -148,6 +149,7 @@ CREATE TABLE IF NOT EXISTS songs (
     album_id  BIGINT NOT NULL REFERENCES albums(id) ON DELETE CASCADE,
     name      TEXT NOT NULL DEFAULT '',
     rating    DOUBLE PRECISION,
+    rated_at  DOUBLE PRECISION,
     position  INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS friendships (
@@ -219,6 +221,8 @@ def _init_sqlite(path):
             conn.execute("ALTER TABLE albums ADD COLUMN rated_at REAL")
         if "released" not in _sqlite_columns(conn, "albums"):
             conn.execute("ALTER TABLE albums ADD COLUMN released TEXT")
+        if "rated_at" not in _sqlite_columns(conn, "songs"):
+            conn.execute("ALTER TABLE songs ADD COLUMN rated_at REAL")
 
 
 def _connect_sqlite(path):
@@ -321,6 +325,7 @@ def _init_postgres():
             conn.execute("ALTER TABLE albums ADD COLUMN IF NOT EXISTS year INTEGER")
             conn.execute("ALTER TABLE albums ADD COLUMN IF NOT EXISTS rated_at DOUBLE PRECISION")
             conn.execute("ALTER TABLE albums ADD COLUMN IF NOT EXISTS released TEXT")
+            conn.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS rated_at DOUBLE PRECISION")
         log("Connected to the database and checked its tables.")
     except psycopg.Error as err:
         # Keep the site up so the error page can explain the problem; the log says what went wrong.

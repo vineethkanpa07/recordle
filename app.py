@@ -267,7 +267,7 @@ def delete_cover(filename):
 
 def album_json(db, row):
     songs = db.execute(
-        "SELECT id, name, rating FROM songs WHERE album_id = ? ORDER BY position, id", (row["id"],)
+        "SELECT id, name, rating, rated_at FROM songs WHERE album_id = ? ORDER BY position, id", (row["id"],)
     ).fetchall()
     return {
         "id": row["id"],
@@ -623,7 +623,7 @@ def update_song(song_id):
         rating = clean_rating(data["rating"])
         song = db.execute("SELECT album_id, rating FROM songs WHERE id = ?", (song_id,)).fetchone()
         if song["rating"] != rating:
-            db.execute("UPDATE songs SET rating = ? WHERE id = ?", (rating, song_id))
+            db.execute("UPDATE songs SET rating = ?, rated_at = ? WHERE id = ?", (rating, time.time(), song_id))
             # remember when this album was last rated: the newest-rated album wins ties in Top albums
             db.execute("UPDATE albums SET rated_at = ? WHERE id = ?", (time.time(), song["album_id"]))
             notify_album_edited(db, uid(), db.execute("SELECT id, title, cover FROM albums WHERE id = ?", (song["album_id"],)).fetchone())
