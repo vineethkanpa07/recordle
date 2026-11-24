@@ -333,6 +333,11 @@ def _init_postgres():
 
 def init(sqlite_path):
     log(f"Storing data in: {describe_database()}")
+    if os.environ.get("RENDER") and not USE_POSTGRES:
+        # Render wipes its disk on every restart and deploy, so a SQLite file there would lose everyone's data.
+        log("STOPPING: DATABASE_URL isn't set to a Postgres address. On Render, add your Neon connection string as "
+            "DATABASE_URL (your service > Environment), then deploy again.")
+        raise SystemExit(1)
     if USE_POSTGRES:
         _init_postgres()
     else:

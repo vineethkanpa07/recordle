@@ -1,7 +1,7 @@
 # Render reads this file to set up the site ("New" > "Blueprint" in the Render dashboard).
 services:
   - type: web
-    name: musicboard
+    name: recordle
     runtime: python
     plan: free
     region: virginia                # same area as the Neon database (AWS US East 1)
